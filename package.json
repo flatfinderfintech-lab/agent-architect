@@ -1,0 +1,29 @@
+{
+  "name": "prototype-cafe-agent-creator",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI Agent Platform for creating, deploying, and monetizing AI agents",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:web\"",
+    "dev:backend": "npm run dev --workspace=packages/backend",
+    "dev:web": "npm run dev --workspace=packages/web",
+    "dev:mobile": "npm run dev --workspace=packages/mobile",
+    "build": "npm run build --workspaces",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "db:migrate": "npm run migrate --workspace=packages/backend",
+    "db:seed": "npm run seed --workspace=packages/backend",
+    "test": "npm run test --workspaces"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  }
+}
