@@ -1,6 +1,19 @@
-# Prototype.Cafe Agent Creator
+# Agent Architect
 
-A comprehensive AI agent platform that empowers both non-coders and developers to build, deploy, monetize, and execute AI agents across web and mobile environments.
+A comprehensive AI agent platform powered by Supabase that empowers both non-coders and developers to build, deploy, monetize, and execute AI agents across web and mobile environments.
+
+## 🆕 New: Supabase Integration
+
+Agent Architect now uses **Supabase** for a streamlined, all-in-one backend:
+
+- ✅ **Authentication**: Built-in auth with Google, GitHub, email/password
+- ✅ **Database**: PostgreSQL with Row Level Security (RLS)
+- ✅ **Real-time**: Instant updates via Supabase Realtime
+- ✅ **Storage**: File uploads and management
+- ✅ **Easy Setup**: Run `./first-time.sh` to get started
+- ✅ **Free Tier**: Generous free tier for development
+
+**Quick Start**: See [DEPLOYMENT-SUPABASE.md](./DEPLOYMENT-SUPABASE.md) for complete setup instructions.
 
 ## 🌟 Features
 
@@ -68,36 +81,44 @@ agent-architect/
    cd agent-architect
    ```
 
-2. **Install dependencies**
+2. **Run the setup script** (recommended)
    ```bash
-   npm install
+   ./first-time.sh
    ```
 
-3. **Set up environment variables**
+   This interactive script will:
+   - Check prerequisites
+   - Collect your Supabase credentials
+   - Collect AI API keys
+   - Generate all necessary `.env` files
+
+   **OR** manually copy `.env.example`:
    ```bash
    cp .env.example .env
    ```
 
-   Edit `.env` and add your credentials:
+3. **Install dependencies**
+   ```bash
+   npm install --legacy-peer-deps
+   # OR use the Makefile
+   make install
+   ```
+
+4. **Set up Supabase** (if not done via script)
+
+   Get credentials from your [Supabase project](https://app.supabase.com):
    ```env
-   # Database
-   DATABASE_URL=postgresql://postgres:postgres@localhost:5432/agent_architect
+   # Supabase
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-anon-key
+   SUPABASE_SERVICE_KEY=your-service-key
 
-   # Redis
-   REDIS_URL=redis://localhost:6379
+   # AI APIs
+   ANTHROPIC_API_KEY=sk-ant-your-key
+   OPENAI_API_KEY=sk-your-key
 
-   # Clerk Authentication
-   CLERK_SECRET_KEY=your_clerk_secret_key
-   NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=your_clerk_publishable_key
-
-   # LLM APIs
-   OPENAI_API_KEY=your_openai_api_key
-   ANTHROPIC_API_KEY=your_anthropic_api_key
-
-   # Optional: Perplexity for web search
-   PERPLEXITY_API_KEY=your_perplexity_api_key
-
-   # JWT
+   # Application
+   NODE_ENV=development
    JWT_SECRET=your_secure_random_string
    ```
 
