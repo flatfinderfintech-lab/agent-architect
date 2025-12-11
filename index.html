@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Agent Architect — AI Micro-Services (Plug & Play)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Abhaya+Libre:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* Minimal version of CSS: page layout, grid, bento, hero, modal, chat & canvas basics */
+    :root{--primary:#023047;--secondary:#1c5d99;--tertiary:#639fab;--light:#bbcde5;--bg:#F9F9F9;--white:#fff}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;font-family:'Abhaya Libre',serif;background:var(--bg);color:#222}
+    .nav{position:fixed;top:0;left:0;right:0;background:var(--bg);border-bottom:1px solid rgba(28,93,153,.12);padding:.75rem 1rem;z-index:1000}
+    .nav .nav-row{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:1rem}
+    .nav .brand{font-weight:800;color:var(--primary);letter-spacing:.05em;display:flex;align-items:center;gap:.5rem}
+    main{padding:6rem 1rem 4rem;max-width:1100px;margin:0 auto}
+    .hero{text-align:center;padding:2.5rem 1rem 3rem}
+    .hero h1{font-size:2.4rem;color:var(--primary);line-height:1.05;margin-bottom:.75rem}
+    .hero p{max-width:64rem;margin:.5rem auto 1rem;color:#333}
+    .btn{display:inline-block;padding:.6rem 1rem;border-radius:.35rem;text-decoration:none;font-weight:700;border:2px solid transparent;cursor:pointer;background:var(--white)}
+    .btn-primary{background:var(--secondary);color:var(--white);border-color:var(--secondary)}
+    .marquee{display:flex;gap:1.25rem;align-items:center;overflow:hidden;padding:1rem 0;border-top:1px solid rgba(28,93,153,.08);border-bottom:1px solid rgba(28,93,153,.08);background:var(--white);margin-top:1rem}
+    .marquee img{width:48px;height:48px;opacity:.8}
+    .section{margin-top:2rem}
+    .bento-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem}
+    .bento-card{background:var(--white);padding:1rem;border-radius:.6rem;border:1px solid rgba(2,48,71,.06);min-height:160px;position:relative;cursor:pointer;overflow:hidden;transition:transform .15s,box-shadow .15s}
+    .bento-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(2,48,71,.1)}
+    .bento-card h3{margin:.5rem 0;color:var(--primary)}
+    .bento-badge{background:var(--light);color:var(--primary);display:inline-block;padding:.25rem .6rem;border-radius:999px;font-weight:700;font-size:.75rem;margin-top:.5rem}
+    footer{margin-top:2rem;padding:1.25rem 0;text-align:center;color:#666;font-size:.9rem}
+    /* Modal */
+    .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:2000}
+    .modal.active{display:flex}
+    .modal .overlay{position:absolute;inset:0;background:rgba(2,48,71,.7);backdrop-filter:blur(4px)}
+    .modal .panel{position:relative;background:var(--white);width:90%;max-width:1100px;height:80vh;border-radius:.75rem;box-shadow:0 20px 60px rgba(0,0,0,.25);overflow:hidden;display:flex;flex-direction:column}
+    .modal .panel .close{position:absolute;right:1rem;top:1rem;border:none;background:#fff;padding:.5rem;border-radius:.4rem;cursor:pointer;border:1px solid rgba(2,48,71,.06);z-index:10}
+    /* Chat / Canvas */
+    .panel .header{padding:1rem;border-bottom:1px solid rgba(2,48,71,.06);background:#fff}
+    .panel .body{flex:1;display:flex;overflow:hidden}
+    .chat-area{width:360px;border-right:1px solid rgba(2,48,71,.04);background:var(--bg);display:flex;flex-direction:column}
+    .chat-header{padding:1rem;background:#fff;border-bottom:1px solid rgba(2,48,71,.04)}
+    .messages{flex:1;padding:1rem;overflow:auto;display:flex;flex-direction:column;gap:.6rem}
+    .chat-message{display:flex;gap:.5rem;align-items:flex-start;max-width:80%}
+    .chat-message.user{margin-left:auto;flex-direction:row-reverse}
+    .avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;background:var(--secondary);color:#fff;flex-shrink:0}
+    .bubble{padding:.6rem .8rem;background:#fff;border-radius:.7rem;border:1px solid rgba(2,48,71,.06)}
+    .chat-input{padding:.75rem;border-top:1px solid rgba(2,48,71,.06);background:#fff}
+    .chat-input textarea{width:100%;min-height:64px;padding:.5rem;border-radius:.45rem;border:1px solid rgba(2,48,71,.06);resize:none;font-family:inherit}
+    .chat-input .send{margin-top:.5rem;padding:.6rem .9rem;background:var(--secondary);color:#fff;border:none;border-radius:.45rem;cursor:pointer;font-weight:700}
+    .canvas-area{flex:1;position:relative;background:linear-gradient(90deg,rgba(28,93,153,.03) 1px,transparent 1px),linear-gradient(0deg,rgba(28,93,153,.03) 1px,transparent 1px);background-size:20px 20px;overflow:auto}
+    .canvas-toolbar{position:absolute;left:12px;top:12px;background:#fff;padding:.5rem;border-radius:.5rem;border:1px solid rgba(2,48,71,.06);display:flex;gap:.35rem;z-index:20}
+    .canvas-content{min-width:1400px;min-height:900px;position:relative}
+    .generated{position:absolute;padding:1rem;background:#fff;border:2px solid #639fab;border-radius:.5rem;box-shadow:0 8px 30px rgba(2,48,71,.08);cursor:grab;user-select:none}
+    .generated:active{cursor:grabbing}
+    .generated.dragging{opacity:0.8;z-index:100}
+    @media(max-width:900px){.chat-area{width:320px}}
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <div class="nav-row">
+      <div class="brand"><svg width="28" height="28" viewBox="0 0 32 32" aria-hidden><rect x="3" y="3" width="12" height="12" fill="#1c5d99"/><rect x="17" y="3" width="12" height="12" fill="#639fab"/><rect x="3" y="17" width="12" height="12" fill="#bbcde5"/></svg>AGENT ARCHITECT</div>
+      <div>
+        <a class="btn" href="#" onclick="document.getElementById('services').scrollIntoView({behavior:'smooth'});return false">Explore</a>
+        <a class="btn btn-primary" href="https://github.com/fucacctz-create/agent-architect.git" target="_blank">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="hero-inner">
+        <div style="display:inline-block;padding:.35rem .9rem;background:var(--light);color:var(--primary);font-weight:700;border-radius:999px;font-size:.8rem">AI-POWERED MICROSERVICES</div>
+        <h1>Build Anything<br>With AI Agents</h1>
+        <p>Pick a service card below. Backend/chat cards open a conversational agent. Frontend/design/idea cards open an infinite canvas with AI generation.</p>
+        <div style="margin-top:1rem">
+          <a class="btn btn-primary" href="#services">Start Building</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="marquee" aria-hidden>
+      <img src="https://img.icons8.com/fluency/96/react-native.png" alt="React">
+      <img src="https://img.icons8.com/color/96/nodejs.png" alt="Node">
+      <img src="https://img.icons8.com/color/96/figma.png" alt="Figma">
+      <img src="https://img.icons8.com/color/96/typescript.png" alt="TS">
+    </section>
+
+    <section id="services" class="section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+        <div>
+          <h2 style="margin-bottom:.25rem">Choose Your AI Service</h2>
+          <div style="color:#444">Select a category to start building with intelligent agents</div>
+        </div>
+      </div>
+
+      <div class="bento-grid">
+        <div class="bento-card" data-category="frontend" data-canvas="true"><h3>Frontend</h3><div>Build interfaces with infinite canvas</div><div class="bento-badge">Infinite Canvas</div></div>
+        <div class="bento-card" data-category="backend" data-canvas="false"><h3>Backend</h3><div>AI-powered server architecture</div><div class="bento-badge">Chat Interface</div></div>
+        <div class="bento-card" data-category="design" data-canvas="true"><h3>Design</h3><div>Visual design with infinite canvas</div><div class="bento-badge">Infinite Canvas</div></div>
+        <div class="bento-card" data-category="middleware" data-canvas="false"><h3>Middleware</h3><div>Integration & API services</div><div class="bento-badge">Chat Interface</div></div>
+        <div class="bento-card" data-category="marketing" data-canvas="true"><h3>Marketing</h3><div>Campaign strategy & content</div><div class="bento-badge">Infinite Canvas</div></div>
+        <div class="bento-card" data-category="planning" data-canvas="false"><h3>Planning</h3><div>Project roadmaps & strategy</div><div class="bento-badge">Chat Interface</div></div>
+        <div class="bento-card" data-category="testing" data-canvas="false"><h3>Testing</h3><div>Automated testing & QA</div><div class="bento-badge">Chat Interface</div></div>
+        <div class="bento-card" data-category="idea-generation" data-canvas="true"><h3>Idea Generation</h3><div>Brainstorm with AI agents</div><div class="bento-badge">Infinite Canvas</div></div>
+      </div>
+    </section>
+
+    <footer>Agent Architect — local demo. Use the mock server to test AI prompts. &copy; 2025</footer>
+  </main>
+
+  <!-- Modal (chat or canvas injected here) -->
+  <div id="serviceModal" class="modal" aria-hidden="true">
+    <div class="overlay" role="presentation"></div>
+    <div class="panel" role="dialog" aria-modal="true" aria-label="Service Interface">
+      <button class="close" id="modalClose" title="Close">&#10005;</button>
+      <div class="header" id="modalHeader"><strong>Service</strong></div>
+      <div class="body" id="modalBody" style="height:100%"></div>
+    </div>
+  </div>
+
+  <script>
+    // ====== Minimal client + Stitch-style prompt wiring (send to /api/agent) ======
+    const API_ENDPOINT = '/api/agent'; // switch to your real backend later
+
+    // Utility
+    const el = (sel, ctx=document) => ctx.querySelector(sel);
+    const els = (sel, ctx=document) => Array.from(ctx.querySelectorAll(sel));
+
+    // Escape HTML to prevent XSS
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Open modal with chat or canvas
+    els('.bento-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const cat = card.dataset.category || 'frontend';
+        const hasCanvas = card.dataset.canvas === 'true';
+        openModal(cat, hasCanvas);
+      });
+    });
+
+    el('#modalClose').addEventListener('click', closeModal);
+    el('#serviceModal .overlay').addEventListener('click', closeModal);
+
+    function openModal(category, canvasMode) {
+      const modal = el('#serviceModal');
+      modal.classList.add('active');
+      modal.setAttribute('aria-hidden', 'false');
+      const header = el('#modalHeader');
+      header.innerHTML = `<strong>${capitalize(category.replace('-', ' '))}</strong> — ${canvasMode ? 'Canvas' : 'Chat'}`;
+      const body = el('#modalBody');
+      body.innerHTML = '';
+      // store category on panel for later
+      el('.panel').dataset.category = category;
+      if (canvasMode) loadCanvasUI(category);
+      else loadChatUI(category);
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+      const modal = el('#serviceModal');
+      modal.classList.remove('active');
+      modal.setAttribute('aria-hidden', 'true');
+      el('#modalBody').innerHTML = '';
+      document.body.style.overflow = '';
+    }
+
+    function capitalize(s) {
+      return s.charAt(0).toUpperCase() + s.slice(1);
+    }
+
+    // ------------------ Chat UI ------------------
+    function loadChatUI(category) {
+      const body = el('#modalBody');
+      body.innerHTML = `
+        <div class="chat-area" role="region" aria-label="Chat area">
+          <div class="chat-header"><strong>${capitalize(category)}</strong><div style="font-size:.9rem;color:#666">Ask the ${capitalize(category)} agent</div></div>
+          <div class="messages" id="chatMessages">
+            <div class="chat-message"><div class="avatar">AI</div><div class="bubble"><p>Hello! I'm your ${capitalize(category)} AI assistant. How can I help?</p></div></div>
+          </div>
+          <div class="chat-input">
+            <textarea id="chatInput" placeholder="Describe what you want to build..." aria-label="Message"></textarea>
+            <div style="display:flex;justify-content:flex-end"><button class="send" id="chatSend">Send</button></div>
+          </div>
+        </div>
+        <div style="flex:1;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1rem">
+          <div style="max-width:520px;color:#444;text-align:center">
+            <h3>Agent Output</h3>
+            <pre id="agentOutput" style="margin-top:.5rem;color:#333;text-align:left;white-space:pre-wrap;word-wrap:break-word;font-size:.85rem;background:#f5f5f5;padding:1rem;border-radius:.5rem;max-height:400px;overflow:auto"></pre>
+          </div>
+        </div>
+      `;
+      initializeChatInterface();
+    }
+
+    async function sendAgentRequest(payload) {
+      try {
+        const r = await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (!r.ok) {
+          const txt = await r.text();
+          throw new Error('Server: ' + r.status + ' ' + txt);
+        }
+        return await r.json();
+      } catch (err) {
+        console.error(err);
+        // Return mock response on error
+        return {
+          status: 'mock',
+          text: `(Mock) Agent received prompt for ${payload.category}.`,
+          meta: (payload.interface === 'infinitecanvas' ? {
+            createdElements: [{
+              type: 'rect',
+              x: 120,
+              y: 140,
+              width: 280,
+              height: 120,
+              text: payload.userprompt,
+              styles: { background: '#fff', border: '2px solid #639fab', borderRadius: '8px' }
+            }]
+          } : {})
+        };
+      }
+    }
+
+    function personaForCategory(category) {
+      const map = {
+        frontend: 'You are a creative frontend engineer who outputs HTML/CSS/JS and layout JSON for canvas.',
+        design: 'You are a visual designer producing layout JSON and Lottie specs.',
+        backend: 'You are a backend architect focused on Node, Docker, and K8s.',
+        middleware: 'You are an integrations engineer for APIs and event-driven systems.',
+        marketing: 'You are a marketing strategist producing campaigns and copy.',
+        planning: 'You are a project planner generating roadmaps and tasks.',
+        testing: 'You are a QA engineer generating tests and coverage plans.',
+        'idea-generation': 'You are an ideation assistant producing concepts and sketches.'
+      };
+      return map[category] || map.frontend;
+    }
+
+    function gatherChatHistory(messagesEl) {
+      const out = [];
+      messagesEl.querySelectorAll('.chat-message').forEach(node => {
+        const isUser = node.classList.contains('user');
+        const text = node.querySelector('.bubble p')?.textContent || '';
+        out.push({ role: isUser ? 'user' : 'assistant', text: text.slice(0, 500) });
+      });
+      return out.slice(-12);
+    }
+
+    function initializeChatInterface() {
+      const sendBtn = el('#chatSend');
+      const input = el('#chatInput');
+      const messages = el('#chatMessages');
+      const outputPanel = el('#agentOutput');
+
+      function appendUser(msg) {
+        const d = document.createElement('div');
+        d.className = 'chat-message user';
+        d.innerHTML = `<div class="avatar">U</div><div class="bubble"><p>${escapeHtml(msg)}</p></div>`;
+        messages.appendChild(d);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      function appendAgent(msg) {
+        const d = document.createElement('div');
+        d.className = 'chat-message';
+        d.innerHTML = `<div class="avatar">AI</div><div class="bubble"><p>${escapeHtml(msg)}</p></div>`;
+        messages.appendChild(d);
+        messages.scrollTop = messages.scrollHeight;
+      }
+
+      sendBtn.addEventListener('click', async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        appendUser(text);
+        input.value = '';
+        const panelCategory = el('.panel').dataset.category || 'backend';
+        const payload = {
+          category: panelCategory,
+          interface: 'chat',
+          persona: personaForCategory(panelCategory),
+          conversationhistory: gatherChatHistory(messages),
+          userprompt: text,
+          ui_context: { page: location.pathname }
+        };
+        const resp = await sendAgentRequest(payload);
+        appendAgent(resp.text || resp.message || '(no reply)');
+        outputPanel.textContent = JSON.stringify(resp.meta || { reply: resp.text }, null, 2);
+      });
+
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          sendBtn.click();
+        }
+      });
+    }
+
+    // ------------------ Canvas UI ------------------
+    function loadCanvasUI(category) {
+      const body = el('#modalBody');
+      body.innerHTML = `
+        <div style="width:360px;border-right:1px solid rgba(2,48,71,.04);background:#fff;padding:.75rem;display:flex;flex-direction:column">
+          <div style="font-weight:700;margin-bottom:.35rem">${capitalize(category)}</div>
+          <div style="font-size:.9rem;color:#666;margin-bottom:.5rem">Canvas AI — describe what to generate</div>
+          <textarea id="canvasInput" style="width:100%;min-height:110px;padding:.5rem;border:1px solid rgba(2,48,71,.06);border-radius:.45rem;font-family:inherit"></textarea>
+          <div style="display:flex;gap:.5rem;margin-top:.5rem">
+            <button id="canvasGen" class="btn btn-primary">Generate</button>
+            <button id="canvasClear" class="btn">Clear</button>
+          </div>
+          <div style="margin-top:.75rem;font-size:.85rem;color:#666">Tip: drag generated elements to place them on the canvas.</div>
+          <div id="canvasLog" style="margin-top:auto;padding-top:.75rem;border-top:1px solid rgba(2,48,71,.06);font-size:.8rem;color:#888;max-height:200px;overflow:auto"></div>
+        </div>
+        <div class="canvas-area" role="region" aria-label="Canvas area">
+          <div class="canvas-toolbar">
+            <button title="Select" class="btn" data-tool="select">Select</button>
+            <button title="Rect" class="btn" data-tool="rect">Rect</button>
+            <button title="Text" class="btn" data-tool="text">Text</button>
+            <button title="AI" class="btn" data-tool="ai">AI</button>
+          </div>
+          <div class="canvas-content" id="canvasContent"></div>
+        </div>
+      `;
+      initializeCanvasInterface();
+    }
+
+    function gatherCanvasElements() {
+      const arr = [];
+      el('#canvasContent')?.querySelectorAll('.generated')?.forEach(n => {
+        arr.push({
+          type: n.dataset.type || 'element',
+          text: n.textContent?.slice(0, 200) || '',
+          position: { x: n.offsetLeft, y: n.offsetTop },
+          size: { w: n.offsetWidth, h: n.offsetHeight }
+        });
+      });
+      return arr;
+    }
+
+    let dragState = null;
+
+    function makeDraggable(node) {
+      node.addEventListener('mousedown', e => {
+        if (e.target.tagName === 'BUTTON') return;
+        dragState = {
+          node,
+          startX: e.clientX,
+          startY: e.clientY,
+          sx: node.offsetLeft,
+          sy: node.offsetTop
+        };
+        node.classList.add('dragging');
+        e.preventDefault();
+      });
+    }
+
+    document.addEventListener('mousemove', e => {
+      if (!dragState) return;
+      const dx = e.clientX - dragState.startX;
+      const dy = e.clientY - dragState.startY;
+      dragState.node.style.left = Math.max(0, dragState.sx + dx) + 'px';
+      dragState.node.style.top = Math.max(0, dragState.sy + dy) + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      if (dragState) {
+        dragState.node.classList.remove('dragging');
+        dragState = null;
+      }
+    });
+
+    function initializeCanvasInterface() {
+      const genBtn = el('#canvasGen');
+      const clearBtn = el('#canvasClear');
+      const input = el('#canvasInput');
+      const canvasContent = el('#canvasContent');
+      const canvasLog = el('#canvasLog');
+
+      let elementCounter = 0;
+
+      function logMessage(msg) {
+        const p = document.createElement('div');
+        p.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+        canvasLog.appendChild(p);
+        canvasLog.scrollTop = canvasLog.scrollHeight;
+      }
+
+      function createCanvasElement(data) {
+        const elem = document.createElement('div');
+        elem.className = 'generated';
+        elem.dataset.type = data.type || 'element';
+        elem.style.left = (data.x || 100 + elementCounter * 30) + 'px';
+        elem.style.top = (data.y || 100 + elementCounter * 30) + 'px';
+        if (data.width) elem.style.width = data.width + 'px';
+        if (data.height) elem.style.minHeight = data.height + 'px';
+        if (data.styles) {
+          Object.assign(elem.style, data.styles);
+        }
+        elem.innerHTML = `<div style="font-weight:700;margin-bottom:.25rem">${escapeHtml(data.type || 'Element')}</div><div>${escapeHtml(data.text || '')}</div>`;
+        makeDraggable(elem);
+        canvasContent.appendChild(elem);
+        elementCounter++;
+        return elem;
+      }
+
+      genBtn.addEventListener('click', async () => {
+        const text = input.value.trim();
+        if (!text) return;
+        logMessage('Sending prompt to AI...');
+        const panelCategory = el('.panel').dataset.category || 'frontend';
+        const payload = {
+          category: panelCategory,
+          interface: 'infinitecanvas',
+          persona: personaForCategory(panelCategory),
+          canvaselements: gatherCanvasElements(),
+          userprompt: text,
+          ui_context: { page: location.pathname }
+        };
+
+        const resp = await sendAgentRequest(payload);
+        logMessage('Response received');
+
+        // Create elements from response
+        if (resp.meta?.createdElements) {
+          resp.meta.createdElements.forEach(elemData => {
+            createCanvasElement(elemData);
+            logMessage(`Created: ${elemData.type || 'element'}`);
+          });
+        } else {
+          // Fallback: create a single element with the response text
+          createCanvasElement({
+            type: 'response',
+            text: resp.text || resp.message || 'Generated',
+            x: 100 + elementCounter * 30,
+            y: 100 + elementCounter * 30,
+            width: 280,
+            height: 100
+          });
+        }
+
+        input.value = '';
+      });
+
+      clearBtn.addEventListener('click', () => {
+        canvasContent.innerHTML = '';
+        elementCounter = 0;
+        logMessage('Canvas cleared');
+      });
+
+      // Toolbar buttons
+      els('.canvas-toolbar .btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tool = btn.dataset.tool;
+          if (tool === 'rect') {
+            createCanvasElement({
+              type: 'rect',
+              text: 'New rectangle',
+              x: 150 + elementCounter * 20,
+              y: 150 + elementCounter * 20,
+              width: 200,
+              height: 100
+            });
+            logMessage('Added rectangle');
+          } else if (tool === 'text') {
+            const text = prompt('Enter text:');
+            if (text) {
+              createCanvasElement({
+                type: 'text',
+                text: text,
+                x: 150 + elementCounter * 20,
+                y: 150 + elementCounter * 20
+              });
+              logMessage('Added text element');
+            }
+          } else if (tool === 'ai') {
+            input.focus();
+          }
+        });
+      });
+
+      input.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          genBtn.click();
+        }
+      });
+    }
+
+    // Keyboard shortcut to close modal
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
