@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
-import { api } from '@/lib/api'
+import { api } from '@/utils/api'
 import Link from 'next/link'
 
 export default function DashboardPage() {
@@ -56,8 +56,11 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center">
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <div className="flex gap-4">
+              <Link href="/deploy">
+                <Button>Deploy Project</Button>
+              </Link>
               <Link href="/agents/new">
-                <Button>Create Agent</Button>
+                <Button variant="outline">Create Agent</Button>
               </Link>
               <Link href="/marketplace">
                 <Button variant="outline">Marketplace</Button>
