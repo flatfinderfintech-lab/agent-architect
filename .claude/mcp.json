@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "sourcery": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@sourcery/mcp-server"
+      ],
+      "env": {
+        "SOURCERY_API_KEY": "${SOURCERY_API_KEY}"
+      }
+    }
+  }
+}
