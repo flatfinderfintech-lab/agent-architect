@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 import { ArrowLeft, Upload, Github, Rocket } from 'lucide-react'
+import { useUser, SignInButton, UserButton } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import {
   FileUpload,
@@ -19,6 +20,7 @@ import type { Project, ProjectFile, EnvVariable, GitHubRepo, Deployment } from '
 type Step = 'select' | 'upload' | 'github' | 'env' | 'deploy' | 'manage'
 
 export default function HomePage() {
+  const { isLoaded, isSignedIn, user } = useUser()
   const [step, setStep] = useState<Step>('select')
   const [files, setFiles] = useState<ProjectFile[]>([])
   const [githubRepo, setGithubRepo] = useState<GitHubRepo | null>(null)
@@ -53,7 +55,7 @@ export default function HomePage() {
         source: 'upload',
         createdAt: new Date(),
         updatedAt: new Date(),
-        userId: 'local-user',
+        userId: user?.id || '',
         files: selectedFiles,
         envVars: detected,
         deployments: [],
@@ -65,7 +67,7 @@ export default function HomePage() {
       // Move to env wizard if variables detected, otherwise straight to deploy
       setStep(detected.length > 0 ? 'env' : 'deploy')
     }
-  }, [addProject])
+  }, [addProject, user?.id])
 
   const handleRepoSelected = useCallback((repo: GitHubRepo) => {
     setGithubRepo(repo)
@@ -78,7 +80,7 @@ export default function HomePage() {
       githubUrl: `https://github.com/${repo.fullName}`,
       createdAt: new Date(),
       updatedAt: new Date(),
-      userId: 'local-user',
+      userId: user?.id || '',
       files: [],
       envVars: [],
       deployments: [],
@@ -89,7 +91,7 @@ export default function HomePage() {
 
     // For GitHub repos, go to env configuration
     setStep('env')
-  }, [addProject])
+  }, [addProject, user?.id])
 
   const handleEnvComplete = useCallback((configuredVars: EnvVariable[]) => {
     setEnvVars(configuredVars)
@@ -178,6 +180,39 @@ export default function HomePage() {
     setStep('deploy')
   }, [])
 
+  // Loading state
+  if (!isLoaded) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Rocket className="h-12 w-12 mx-auto mb-4 animate-pulse" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // Sign-in gate
+  if (!isSignedIn) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto p-8">
+          <Rocket className="h-16 w-16 mx-auto mb-6 text-primary" />
+          <h1 className="text-3xl font-bold mb-4">Vercel Deployer</h1>
+          <p className="text-muted-foreground mb-8">
+            Deploy your projects to Vercel with automated environment configuration.
+            Sign in to get started.
+          </p>
+          <SignInButton mode="modal">
+            <Button size="lg" className="w-full">
+              Sign In to Continue
+            </Button>
+          </SignInButton>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -212,11 +247,14 @@ export default function HomePage() {
               </div>
             </div>
 
-            {projects.length > 0 && step !== 'manage' && (
-              <Button variant="outline" onClick={() => setStep('manage')}>
-                Manage Projects ({projects.length})
-              </Button>
-            )}
+            <div className="flex items-center gap-4">
+              {projects.length > 0 && step !== 'manage' && (
+                <Button variant="outline" onClick={() => setStep('manage')}>
+                  Manage Projects ({projects.length})
+                </Button>
+              )}
+              <UserButton afterSignOutUrl="/" />
+            </div>
           </div>
         </div>
       </header>
