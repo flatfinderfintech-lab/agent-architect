@@ -25,6 +25,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (isLoaded && user) {
       loadAgents()
+    } else if (isLoaded && !user) {
+      setLoading(false)
     }
   }, [isLoaded, user, loadAgents])
 
