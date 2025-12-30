@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useUser } from '@clerk/nextjs'
 import { Button } from '@/components/ui/button'
 import { api } from '@/lib/api'
@@ -11,13 +11,7 @@ export default function DashboardPage() {
   const [agents, setAgents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    if (isLoaded && user) {
-      loadAgents()
-    }
-  }, [isLoaded, user])
-
-  const loadAgents = async () => {
+  const loadAgents = useCallback(async () => {
     try {
       const data = await api.agents.list()
       setAgents(data.agents || [])
@@ -26,7 +20,13 @@ export default function DashboardPage() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
+
+  useEffect(() => {
+    if (isLoaded && user) {
+      loadAgents()
+    }
+  }, [isLoaded, user, loadAgents])
 
   if (!isLoaded || loading) {
     return (
